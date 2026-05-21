@@ -67,6 +67,12 @@ const navItems: NavItem[] = [
     roles: ['supervisor', 'owner'],
   },
   {
+    label: 'Pegawai',
+    href: '/employees',
+    icon: <Users className="w-5 h-5" />,
+    roles: ['owner'],
+  },
+  {
     label: 'Laporan',
     href: '/reports',
     icon: <BarChart3 className="w-5 h-5" />,

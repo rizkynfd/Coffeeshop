@@ -131,6 +131,13 @@ ALTER TABLE public.customers DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.shifts DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders DISABLE ROW LEVEL SECURITY;
 
+-- ============================================================================
+-- Permissions (Wajib dijalankan agar API bisa membaca tabel)
+-- ============================================================================
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated;
+
 -- Insert Mock Users (Important for the first login)
 -- Note: Replace these with proper Supabase Auth sign-ups later.
 -- INSERT INTO auth.users ... (done via API or UI usually)

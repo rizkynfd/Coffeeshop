@@ -42,31 +42,33 @@ export function SyncManager() {
         const inventoryStore = useInventoryStore.getState();
         const customerStore = useCustomerStore.getState();
 
-        // Tarik Menu jika kosong
-        if (menuStore.products.length === 0 && menuStore.categories.length === 0) {
-          const { data: categories } = await supabase.from('categories').select('*');
-          const { data: products } = await supabase.from('products').select('*');
+        const isFirstSync = useSyncStore.getState().lastSyncedAt === null;
+
+        // Tarik Menu
+        if (isFirstSync || (menuStore.products.length === 0 && menuStore.categories.length === 0)) {
+          const { data: categories, error: errC } = await supabase.from('categories').select('*');
+          const { data: products, error: errP } = await supabase.from('products').select('*');
           
-          if (categories && categories.length > 0) {
+          if (!errC && categories) {
             useMenuStore.setState({ categories });
           }
-          if (products && products.length > 0) {
+          if (!errP && products) {
             useMenuStore.setState({ products });
           }
         }
 
-        // Tarik Inventory jika kosong
-        if (inventoryStore.stockItems.length === 0) {
-          const { data: stockItems } = await supabase.from('inventory').select('*');
-          if (stockItems && stockItems.length > 0) {
+        // Tarik Inventory
+        if (isFirstSync || inventoryStore.stockItems.length === 0) {
+          const { data: stockItems, error: errS } = await supabase.from('inventory').select('*');
+          if (!errS && stockItems) {
             useInventoryStore.setState({ stockItems });
           }
         }
 
-        // Tarik Customer jika kosong
-        if (customerStore.customers.length === 0) {
-          const { data: customers } = await supabase.from('customers').select('*');
-          if (customers && customers.length > 0) {
+        // Tarik Customer
+        if (isFirstSync || customerStore.customers.length === 0) {
+          const { data: customers, error: errCust } = await supabase.from('customers').select('*');
+          if (!errCust && customers) {
             useCustomerStore.setState({ 
               customers: customers.map(c => ({
                 id: c.id,
