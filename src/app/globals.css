@@ -1,0 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* ============================================================
+   DESIGN SYSTEM — Warm Espresso Theme (Tailwind v4)
+   ============================================================ */
+
+@theme inline {
+  /* ── Espresso Color Scale ── */
+  --color-espresso-950: #1C1210;
+  --color-espresso-900: #2C1F1A;
+  --color-espresso-800: #3D2B22;
+  --color-espresso-700: #5C3D2E;
+  --color-espresso-600: #6F4E37;
+  --color-espresso-500: #8B6F5C;
+  --color-espresso-400: #A68B7B;
+  --color-espresso-300: #C4AA96;
+  --color-espresso-200: #DDD0C4;
+  --color-espresso-100: #F0E6DB;
+  --color-espresso-50: #FAF6F1;
+  --color-cream: #FEFCF9;
+
+  /* ── Accent Colors ── */
+  --color-amber-accent: #D97706;
+  --color-amber-accent-hover: #B45309;
+  --color-emerald-accent: #059669;
+  --color-emerald-accent-hover: #047857;
+  --color-rose-accent: #E11D48;
+  --color-rose-accent-hover: #BE123C;
+  --color-sky-accent: #0284C7;
+  --color-sky-accent-hover: #0369A1;
+
+  /* ── Typography ── */
+  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ── Custom Shadows ── */
+  --shadow-card: 0 1px 3px 0 rgba(28, 18, 16, 0.06), 0 1px 2px -1px rgba(28, 18, 16, 0.06);
+  --shadow-card-hover: 0 4px 6px -1px rgba(28, 18, 16, 0.08), 0 2px 4px -2px rgba(28, 18, 16, 0.06);
+  --shadow-modal: 0 20px 25px -5px rgba(28, 18, 16, 0.12), 0 8px 10px -6px rgba(28, 18, 16, 0.08);
+
+  /* ── Animation ── */
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-slide-up: slide-up 0.3s ease-out;
+  --animate-slide-in-right: slide-in-right 0.3s ease-out;
+  --animate-scale-in: scale-in 0.2s ease-out;
+}
+
+/* ── Keyframes ── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #C4AA96 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #C4AA96;
+  border-radius: 20px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #A68B7B;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: #FAF6F1;
+  color: #1C1210;
+  min-height: 100vh;
+}
+
+/* ── Focus Ring ── */
+*:focus-visible {
+  outline: 2px solid #D97706;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ── Selection ── */
+::selection {
+  background-color: #DDD0C4;
+  color: #1C1210;
+}
+
+/* ── Print Styles for Receipt ── */
+@media print {
+  body {
+    background: white !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.glass-card {
+  background: rgba(254, 252, 249, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(221, 208, 196, 0.5);
+}
+
+.gradient-warm {
+  background: linear-gradient(135deg, #FAF6F1 0%, #F0E6DB 100%);
+}
+
+.gradient-sidebar {
+  background: linear-gradient(180deg, #1C1210 0%, #2C1F1A 100%);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Shimmer loading effect */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    #F0E6DB 25%,
+    #DDD0C4 50%,
+    #F0E6DB 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Receipt-style monospaced text */
+.receipt-text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Touch-friendly target */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
