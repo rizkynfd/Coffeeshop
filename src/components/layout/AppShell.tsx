@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { Sidebar } from './Sidebar';
+import { AppInitializer } from './AppInitializer';
 import { SyncManager } from '@/components/sync/SyncManager';
 import { SyncIndicator } from '@/components/ui/SyncIndicator';
 
@@ -27,6 +28,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-espresso-50 relative">
+      <AppInitializer />
       <SyncManager />
       <SyncIndicator />
       <Sidebar />

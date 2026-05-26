@@ -152,6 +152,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }: AddEmployeeModa
               >
                 <option value="cashier">Kasir</option>
                 <option value="supervisor">Supervisor</option>
+                <option value="owner">Owner</option>
               </select>
             </div>
           </form>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { products } from '@/data/mock-products';
+import { useMenuStore } from '@/stores/menu-store';
 import { useCartStore } from '@/stores/cart-store';
 import { useOrderStore } from '@/stores/order-store';
 import { CategoryTabs } from '@/components/pos/CategoryTabs';
@@ -25,6 +25,8 @@ export default function POSPage() {
 
   const { addItem } = useCartStore();
   const { addOrder } = useOrderStore();
+  // Use products from Supabase-backed store
+  const products = useMenuStore((s) => s.products);
 
   // Filter products
   const filteredProducts = useMemo(() => {
@@ -34,7 +36,7 @@ export default function POSPage() {
     return products.filter(
       (p) => p.categoryId === activeCategory && p.isAvailable
     );
-  }, [activeCategory]);
+  }, [activeCategory, products]);
 
   // Keyboard shortcut: Ctrl+K for search
   useEffect(() => {
@@ -60,7 +62,6 @@ export default function POSPage() {
       setSelectedProduct(product);
       setIsModifierOpen(true);
     } else {
-      // Quick add — no modifiers needed
       addItem({
         productId: product.id,
         productName: product.name,
@@ -75,14 +76,10 @@ export default function POSPage() {
 
   const handleModifierConfirm = useCallback(
     (config: {
-      size: any;
-      temperature?: any;
-      sugarLevel?: any;
-      milkType?: any;
-      modifiers: any[];
-      notes: string;
-      quantity: number;
-      unitPrice: number;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      size: any; temperature?: any; sugarLevel?: any; milkType?: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      modifiers: any[]; notes: string; quantity: number; unitPrice: number;
     }) => {
       if (!selectedProduct) return;
       addItem({
@@ -101,12 +98,17 @@ export default function POSPage() {
     [selectedProduct, addItem]
   );
 
+  // addOrder is now async — await it and handle errors
   const handlePayment = useCallback(
-    (payments: Payment[]) => {
-      const order = addOrder(payments);
-      setIsPaymentOpen(false);
-      setCompletedOrder(order);
-      setIsReceiptOpen(true);
+    async (payments: Payment[]) => {
+      try {
+        const order = await addOrder(payments);
+        setIsPaymentOpen(false);
+        setCompletedOrder(order);
+        setIsReceiptOpen(true);
+      } catch (err) {
+        console.error('Payment failed:', err);
+      }
     },
     [addOrder]
   );
@@ -119,9 +121,7 @@ export default function POSPage() {
         <div className="px-6 pt-5 pb-4 space-y-4 shrink-0">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-espresso-900">
-                Kasir
-              </h1>
+              <h1 className="text-xl font-bold text-espresso-900">Kasir</h1>
               <p className="text-sm text-espresso-400">
                 Pilih produk untuk membuat pesanan
               </p>
@@ -135,8 +135,6 @@ export default function POSPage() {
               />
             </div>
           </div>
-
-          {/* Category Tabs */}
           <CategoryTabs
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
@@ -152,7 +150,7 @@ export default function POSPage() {
         </div>
       </div>
 
-      {/* Right: Order Panel — Fixed 380px width */}
+      {/* Right: Order Panel */}
       <div className="w-[380px] shrink-0">
         <OrderPanel onCheckout={() => setIsPaymentOpen(true)} />
       </div>
@@ -163,30 +161,21 @@ export default function POSPage() {
         onClose={() => setIsSearchOpen(false)}
         onSelectProduct={handleProductClick}
       />
-
       <ModifierDialog
         product={selectedProduct}
         isOpen={isModifierOpen}
-        onClose={() => {
-          setIsModifierOpen(false);
-          setSelectedProduct(null);
-        }}
+        onClose={() => { setIsModifierOpen(false); setSelectedProduct(null); }}
         onConfirm={handleModifierConfirm}
       />
-
       <PaymentModal
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
         onConfirm={handlePayment}
       />
-
       <ReceiptPreview
         order={completedOrder}
         isOpen={isReceiptOpen}
-        onClose={() => {
-          setIsReceiptOpen(false);
-          setCompletedOrder(null);
-        }}
+        onClose={() => { setIsReceiptOpen(false); setCompletedOrder(null); }}
       />
     </div>
   );

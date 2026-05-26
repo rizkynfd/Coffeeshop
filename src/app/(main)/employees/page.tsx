@@ -24,7 +24,7 @@ export default function EmployeesPage() {
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .in('role', ['cashier', 'supervisor'])
+        .in('role', ['cashier', 'supervisor', 'owner'])
         .order('name');
         
       if (error) throw error;

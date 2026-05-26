@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/Button';
-import { Coffee, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Coffee, Eye, EyeOff, AlertCircle, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -20,31 +20,22 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
 
-    await new Promise((r) => setTimeout(r, 600));
-
     const success = await login(email, password);
     if (success) {
       router.push('/pos');
     } else {
-      setError('Email atau password salah');
+      setError('Email atau password salah. Pastikan akun Anda sudah didaftarkan.');
     }
     setIsLoading(false);
   };
-
-  const demoAccounts = [
-    { email: 'dimas@kopikasir.com', role: 'Kasir', color: 'bg-espresso-600' },
-    { email: 'rizky@kopikasir.com', role: 'Supervisor', color: 'bg-sky-accent' },
-    { email: 'ahmad@kopikasir.com', role: 'Owner', color: 'bg-amber-accent' },
-  ];
 
   return (
     <div className="min-h-screen flex">
       {/* Left Panel — Branding */}
       <div className="hidden lg:flex lg:w-1/2 gradient-sidebar relative overflow-hidden items-center justify-center p-12">
-        {/* Decorative circles */}
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-espresso-800/30 blur-3xl" />
         <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full bg-amber-accent/10 blur-3xl" />
-        
+
         <div className="relative z-10 max-w-md text-center">
           <div className="w-20 h-20 mx-auto mb-8 rounded-2xl bg-amber-accent flex items-center justify-center shadow-xl">
             <Coffee className="w-10 h-10 text-white" />
@@ -53,7 +44,7 @@ export default function LoginPage() {
             KopiKasir
           </h1>
           <p className="text-espresso-400 text-lg leading-relaxed mb-8">
-            Sistem kasir modern untuk coffee shop Anda. 
+            Sistem kasir modern untuk coffee shop Anda.{' '}
             Cepat, intuitif, dan dirancang untuk barista.
           </p>
           <div className="flex items-center justify-center gap-8 text-espresso-500">
@@ -84,59 +75,51 @@ export default function LoginPage() {
               <Coffee className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-display text-xl font-bold text-espresso-900">
-                KopiKasir
-              </h1>
+              <h1 className="font-display text-xl font-bold text-espresso-900">KopiKasir</h1>
               <p className="text-xs text-espresso-400">Coffee Shop POS</p>
             </div>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-espresso-900 mb-2">
-              Selamat Datang
-            </h2>
-            <p className="text-espresso-500">
-              Masuk ke akun Anda untuk memulai shift
-            </p>
+            <h2 className="text-2xl font-bold text-espresso-900 mb-2">Selamat Datang</h2>
+            <p className="text-espresso-500">Masuk ke akun Anda untuk memulai shift</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Username */}
+            {/* Email */}
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-espresso-700 mb-2"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-espresso-700 mb-2">
                 Email
               </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-espresso-200 bg-white text-espresso-900 placeholder:text-espresso-400 focus:outline-none focus:ring-2 focus:ring-amber-accent/30 focus:border-amber-accent transition-all"
-                placeholder="Masukkan email"
-                required
-                autoFocus
-                autoComplete="email"
-              />
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-espresso-400 pointer-events-none" />
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-espresso-200 bg-white text-espresso-900 placeholder:text-espresso-400 focus:outline-none focus:ring-2 focus:ring-amber-accent/30 focus:border-amber-accent transition-all"
+                  placeholder="nama@kopikasir.com"
+                  required
+                  autoFocus
+                  autoComplete="email"
+                />
+              </div>
             </div>
 
             {/* Password */}
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-espresso-700 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-espresso-700 mb-2">
                 Password
               </label>
               <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-espresso-400 pointer-events-none" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 rounded-xl border border-espresso-200 bg-white text-espresso-900 placeholder:text-espresso-400 focus:outline-none focus:ring-2 focus:ring-amber-accent/30 focus:border-amber-accent transition-all"
+                  className="w-full pl-11 pr-12 py-3 rounded-xl border border-espresso-200 bg-white text-espresso-900 placeholder:text-espresso-400 focus:outline-none focus:ring-2 focus:ring-amber-accent/30 focus:border-amber-accent transition-all"
                   placeholder="Masukkan password"
                   required
                   autoComplete="current-password"
@@ -147,11 +130,7 @@ export default function LoginPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-espresso-400 hover:text-espresso-600 transition-colors cursor-pointer"
                   aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
@@ -165,52 +144,14 @@ export default function LoginPage() {
             )}
 
             {/* Submit */}
-            <Button
-              type="submit"
-              size="lg"
-              fullWidth
-              isLoading={isLoading}
-            >
+            <Button type="submit" size="lg" fullWidth isLoading={isLoading}>
               Masuk
             </Button>
           </form>
 
-          {/* Demo Accounts */}
-          <div className="mt-8 pt-8 border-t border-espresso-200">
-            <p className="text-xs font-medium text-espresso-400 uppercase tracking-wider mb-4">
-              Akun Demo (klik untuk login cepat)
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              {demoAccounts.map((account) => (
-                <button
-                  key={account.email}
-                  onClick={() => {
-                    setEmail(account.email);
-                    setPassword('demo1234');
-                    setError('');
-                  }}
-                  className="flex flex-col items-center gap-2 px-3 py-3 rounded-xl border border-espresso-200 bg-white hover:bg-espresso-50 hover:border-espresso-300 transition-all cursor-pointer group"
-                >
-                  <div
-                    className={`w-8 h-8 rounded-full ${account.color} flex items-center justify-center text-white text-xs font-bold`}
-                  >
-                    {account.email.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="text-center overflow-hidden w-full">
-                    <p className="text-sm font-medium text-espresso-700 group-hover:text-espresso-900 truncate">
-                      {account.email.split('@')[0]}
-                    </p>
-                    <p className="text-[10px] text-espresso-400">
-                      {account.role}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <p className="text-[11px] text-espresso-400 mt-3 text-center">
-              Password untuk semua akun demo: <code className="font-mono bg-espresso-100 px-1.5 py-0.5 rounded">demo1234</code>
-            </p>
-          </div>
+          <p className="mt-8 text-center text-xs text-espresso-400">
+            Hubungi administrator jika Anda tidak bisa masuk ke akun.
+          </p>
         </div>
       </div>
     </div>
