@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/Button';
 import { useMenuStore } from '@/stores/menu-store';
 import { useToastStore } from '@/stores/toast-store';
 import { formatCurrency, cn } from '@/lib/utils';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, UploadCloud, Loader2 } from 'lucide-react';
 import type { Product, ProductVariant, ProductSize } from '@/types';
 import { modifiers as allModifiers } from '@/data/mock-products';
+import { supabase } from '@/lib/supabase';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ const emptyForm = {
   name: '',
   categoryId: '',
   description: '',
+  image: '',
   variants: [{ size: 'medium' as ProductSize, price: 0 }] as ProductVariant[],
   hasTemperature: false,
   hasSugarLevel: false,
@@ -41,6 +43,8 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
   const isEditing = !!product;
 
   const [form, setForm] = useState(emptyForm);
+  const [isUploading, setIsUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (product) {
@@ -48,6 +52,7 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
         name: product.name,
         categoryId: product.categoryId,
         description: product.description,
+        image: product.image ?? '',
         variants: [...product.variants],
         hasTemperature: product.hasTemperature,
         hasSugarLevel: product.hasSugarLevel,
@@ -56,10 +61,46 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
         isAvailable: product.isAvailable,
         isPopular: product.isPopular,
       });
+      setImagePreview(product.image ?? null);
     } else {
       setForm(emptyForm);
+      setImagePreview(null);
     }
   }, [product, isOpen]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      addToast('Ukuran gambar maksimal 2MB', 'error');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('products').getPublicUrl(filePath);
+      
+      updateField('image', data.publicUrl);
+      setImagePreview(data.publicUrl);
+      addToast('Gambar berhasil diunggah', 'success');
+    } catch (error) {
+      console.error('Upload error:', error);
+      addToast('Gagal mengupload gambar', 'error');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const updateField = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -151,6 +192,41 @@ export function ProductFormModal({ isOpen, onClose, product }: ProductFormModalP
             className="w-full px-4 py-2.5 rounded-xl border border-espresso-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-accent text-sm"
             placeholder="Deskripsi singkat produk"
           />
+        </div>
+
+        {/* Image Upload */}
+        <div>
+          <label className="block text-sm font-medium text-espresso-700 mb-2">Gambar Produk</label>
+          <div className="flex items-start gap-4">
+            <div className="relative w-24 h-24 rounded-xl border-2 border-dashed border-espresso-200 bg-espresso-50 flex items-center justify-center overflow-hidden shrink-0">
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl">☕</span>
+              )}
+              {isUploading && (
+                <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-espresso-700 animate-spin" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <label className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border border-espresso-200 bg-white text-espresso-700 text-sm font-medium hover:bg-espresso-50 cursor-pointer transition-colors">
+                <UploadCloud className="w-4 h-4" />
+                <span>Pilih Gambar...</span>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                  disabled={isUploading}
+                />
+              </label>
+              <p className="text-xs text-espresso-400 mt-2">
+                Format: JPG, PNG, WEBP. Maksimal 2MB. Gambar akan diubah ukurannya secara otomatis untuk menyesuaikan tampilan kasir.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Variants */}

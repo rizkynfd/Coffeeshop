@@ -236,9 +236,17 @@ function MenuProductCard({
     >
       {/* Image & Badges */}
       <div className="relative h-36 bg-gradient-to-br from-espresso-100 to-espresso-200 rounded-t-xl flex items-center justify-center overflow-hidden">
-        <span className="text-5xl">☕</span>
+        {product.image ? (
+          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-5xl">☕</span>
+        )}
         <div className="absolute inset-0 bg-espresso-950/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-          <button className="p-2 bg-white rounded-lg text-espresso-700 hover:bg-espresso-50 cursor-pointer">
+          <button 
+            onClick={onEdit}
+            className="p-2 bg-white rounded-lg text-espresso-700 hover:bg-espresso-50 cursor-pointer"
+            title="Edit Gambar"
+          >
             <ImagePlus className="w-4 h-4" />
           </button>
         </div>

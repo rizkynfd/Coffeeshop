@@ -58,9 +58,13 @@ function ProductCard({
     >
       {/* Image placeholder */}
       <div className="relative w-full aspect-square rounded-lg bg-gradient-to-br from-espresso-100 to-espresso-200 mb-3 overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center text-espresso-300">
-          <span className="text-3xl">☕</span>
-        </div>
+        {product.image ? (
+          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-espresso-300">
+            <span className="text-3xl">☕</span>
+          </div>
+        )}
 
         {/* Popular badge */}
         {product.isPopular && (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { products } from '@/data/mock-products';
+import { useMenuStore } from '@/stores/menu-store';
 import { formatCurrency } from '@/lib/utils';
 import { Search, X } from 'lucide-react';
 import type { Product } from '@/types';
@@ -19,6 +19,7 @@ export function ProductSearch({
 }: ProductSearchProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const products = useMenuStore((s) => s.products);
 
   useEffect(() => {
     if (isOpen) {
@@ -103,8 +104,12 @@ export function ProductSearch({
                   disabled={!product.isAvailable}
                   className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left hover:bg-espresso-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-espresso-100 flex items-center justify-center text-lg shrink-0">
-                    ☕
+                  <div className="w-10 h-10 rounded-lg bg-espresso-100 flex items-center justify-center text-lg shrink-0 overflow-hidden">
+                    {product.image ? (
+                      <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                    ) : (
+                      '☕'
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-espresso-800 truncate">
