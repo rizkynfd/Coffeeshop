@@ -117,22 +117,34 @@ export function ModifierDialog({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={product.name}
+      title="Atur Pesanan"
       size="lg"
+      className="p-0 overflow-hidden"
     >
-      <div className="p-6 space-y-6">
-        {/* Product Info */}
-        <div className="flex items-center gap-4 pb-4 border-b border-espresso-100">
-          <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-espresso-100 to-espresso-200 flex items-center justify-center text-4xl shrink-0">
-            ☕
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-espresso-900">
+      <div className="flex flex-col">
+        {/* Beautiful Hero Section */}
+        <div className="relative w-full h-48 sm:h-56 bg-gradient-to-br from-espresso-100 to-espresso-200 shrink-0">
+          {product.image ? (
+            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-50">☕</div>
+          )}
+          
+          {/* Gradient Overlay for Text */}
+          <div className="absolute inset-0 bg-gradient-to-t from-espresso-950/90 via-espresso-950/30 to-transparent flex flex-col justify-end p-6">
+            <h3 className="text-2xl sm:text-3xl font-bold text-white mb-1 drop-shadow-md">
               {product.name}
             </h3>
-            <p className="text-sm text-espresso-400">{product.description}</p>
+            {product.description && (
+              <p className="text-sm sm:text-base text-espresso-200 max-w-xl leading-relaxed drop-shadow-md">
+                {product.description}
+              </p>
+            )}
           </div>
         </div>
+
+        {/* Options Content */}
+        <div className="p-6 space-y-8 bg-cream">
 
         {/* Size Selection */}
         {product.variants.length > 1 && (
@@ -298,6 +310,7 @@ export function ModifierDialog({
             Tambah — {formatCurrency(totalPrice)}
           </Button>
         </div>
+      </div>
       </div>
     </Modal>
   );
