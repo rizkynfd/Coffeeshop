@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { categories } from '@/data/mock-products';
+import { useMenuStore } from '@/stores/menu-store';
 import {
   Coffee,
   Filter,
@@ -32,6 +32,8 @@ export function CategoryTabs({
   activeCategory,
   onCategoryChange,
 }: CategoryTabsProps) {
+  const categories = useMenuStore((s) => s.categories);
+
   const allTabs = [
     { id: 'all', name: 'Semua', icon: <Grid3X3 className="w-4 h-4" /> },
     { id: 'popular', name: 'Populer', icon: <Star className="w-4 h-4" /> },
