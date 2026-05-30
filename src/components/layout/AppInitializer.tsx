@@ -9,10 +9,13 @@ import { useShiftStore } from '@/stores/shift-store';
 import { supabase } from '@/lib/supabase';
 
 /**
- * AppInitializer — listens to Supabase's own auth state change event.
- * 'INITIAL_SESSION' fires once Supabase has fully restored its session
- * from localStorage — the only reliable signal that RLS-protected queries
- * will work. Using Zustand userId caused a race condition on refresh.
+ * AppInitializer — handles two scenarios:
+ * 1. Page refresh: INITIAL_SESSION already fired before this component mounts.
+ *    Fix → call getSession() directly on mount to get the current session.
+ * 2. First login: SIGNED_IN event fires after mount.
+ *    Fix → onAuthStateChange listener catches it.
+ *
+ * hasFetched ref prevents double-fetching if both paths trigger.
  */
 export function AppInitializer() {
   const fetchMenuData = useMenuStore((s) => s.fetchMenuData);
@@ -24,37 +27,44 @@ export function AppInitializer() {
   const fetchShiftHistory = useShiftStore((s) => s.fetchShiftHistory);
 
   const hasFetched = useRef(false);
-  const unsubscribeOrders = useRef<(() => void) | null>(null);
+  const unsubOrders = useRef<(() => void) | null>(null);
+
+  const doFetch = async () => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
+    await Promise.all([
+      fetchMenuData(),
+      fetchCustomers(),
+      fetchTodayOrders(),
+      fetchInventory(),
+      fetchActiveShift(),
+      fetchShiftHistory(),
+    ]);
+
+    unsubOrders.current = subscribeToOrders();
+  };
 
   useEffect(() => {
+    // --- Path 1: Handle refresh (INITIAL_SESSION already fired) ---
+    // getSession() reads Supabase session from localStorage cache.
+    // After await, the Supabase client has its JWT set → RLS queries work.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) void doFetch();
+    });
+
+    // --- Path 2: Handle fresh login (SIGNED_IN fires after mount) ---
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // Fire on initial session restore OR on sign-in
-        // Only fetch once per mount to avoid duplicate requests
-        if (
-          (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') &&
-          session &&
-          !hasFetched.current
-        ) {
-          hasFetched.current = true;
-
-          await Promise.all([
-            fetchMenuData(),
-            fetchCustomers(),
-            fetchTodayOrders(),
-            fetchInventory(),
-            fetchActiveShift(),
-            fetchShiftHistory(),
-          ]);
-
-          unsubscribeOrders.current = subscribeToOrders();
+      (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          void doFetch();
         }
       }
     );
 
     return () => {
       subscription.unsubscribe();
-      if (unsubscribeOrders.current) unsubscribeOrders.current();
+      if (unsubOrders.current) unsubOrders.current();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
