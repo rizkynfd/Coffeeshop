@@ -114,14 +114,14 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-espresso-800/50 shrink-0">
+      <div className="flex items-center gap-3 px-4 h-20 border-b border-espresso-800/50 shrink-0">
         {/* Logo image — always visible, size changes on collapse */}
         <img
           src="/Logo Kopishop.png"
           alt="KopiShop"
           className={cn(
             'object-contain shrink-0 transition-all duration-300',
-            collapsed ? 'w-9 h-9' : 'w-10 h-10'
+            collapsed ? 'w-10 h-10' : 'w-14 h-14'
           )}
         />
         {!collapsed && (
