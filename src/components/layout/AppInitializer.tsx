@@ -1,18 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useMenuStore } from '@/stores/menu-store';
 import { useCustomerStore } from '@/stores/customer-store';
 import { useOrderStore } from '@/stores/order-store';
 import { useInventoryStore } from '@/stores/inventory-store';
 import { useShiftStore } from '@/stores/shift-store';
-import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
 
 /**
- * AppInitializer — mounts once inside AppShell after auth is confirmed.
- * Waits for Supabase to fully restore its own session before fetching data,
- * preventing empty products on page refresh due to RLS blocking unauthenticated queries.
+ * AppInitializer — listens to Supabase's own auth state change event.
+ * 'INITIAL_SESSION' fires once Supabase has fully restored its session
+ * from localStorage — the only reliable signal that RLS-protected queries
+ * will work. Using Zustand userId caused a race condition on refresh.
  */
 export function AppInitializer() {
   const fetchMenuData = useMenuStore((s) => s.fetchMenuData);
@@ -22,40 +22,42 @@ export function AppInitializer() {
   const fetchInventory = useInventoryStore((s) => s.fetchInventory);
   const fetchActiveShift = useShiftStore((s) => s.fetchActiveShift);
   const fetchShiftHistory = useShiftStore((s) => s.fetchShiftHistory);
-  const userId = useAuthStore((s) => s.user?.id);
+
+  const hasFetched = useRef(false);
+  const unsubscribeOrders = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        // Fire on initial session restore OR on sign-in
+        // Only fetch once per mount to avoid duplicate requests
+        if (
+          (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') &&
+          session &&
+          !hasFetched.current
+        ) {
+          hasFetched.current = true;
 
-    let unsubscribe: (() => void) | null = null;
+          await Promise.all([
+            fetchMenuData(),
+            fetchCustomers(),
+            fetchTodayOrders(),
+            fetchInventory(),
+            fetchActiveShift(),
+            fetchShiftHistory(),
+          ]);
 
-    const init = async () => {
-      // Force Supabase client to restore its own session from localStorage
-      // before making any authenticated queries.
-      // Without this, RLS-protected tables (like products) return empty on refresh.
-      await supabase.auth.getSession();
-
-      // Now it's safe to fetch all data in parallel
-      await Promise.all([
-        fetchMenuData(),
-        fetchCustomers(),
-        fetchTodayOrders(),
-        fetchInventory(),
-        fetchActiveShift(),
-        fetchShiftHistory(),
-      ]);
-
-      // Subscribe to realtime orders (kanban)
-      unsubscribe = subscribeToOrders();
-    };
-
-    void init();
+          unsubscribeOrders.current = subscribeToOrders();
+        }
+      }
+    );
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      subscription.unsubscribe();
+      if (unsubscribeOrders.current) unsubscribeOrders.current();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, []);
 
   return null;
 }
