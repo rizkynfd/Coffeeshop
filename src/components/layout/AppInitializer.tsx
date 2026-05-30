@@ -7,11 +7,12 @@ import { useOrderStore } from '@/stores/order-store';
 import { useInventoryStore } from '@/stores/inventory-store';
 import { useShiftStore } from '@/stores/shift-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { supabase } from '@/lib/supabase';
 
 /**
  * AppInitializer — mounts once inside AppShell after auth is confirmed.
- * Fetches all required data from Supabase and subscribes to realtime orders.
- * Re-fetches whenever the authenticated user changes (e.g. after page refresh).
+ * Waits for Supabase to fully restore its own session before fetching data,
+ * preventing empty products on page refresh due to RLS blocking unauthenticated queries.
  */
 export function AppInitializer() {
   const fetchMenuData = useMenuStore((s) => s.fetchMenuData);
@@ -21,28 +22,40 @@ export function AppInitializer() {
   const fetchInventory = useInventoryStore((s) => s.fetchInventory);
   const fetchActiveShift = useShiftStore((s) => s.fetchActiveShift);
   const fetchShiftHistory = useShiftStore((s) => s.fetchShiftHistory);
-
-  // Re-run fetch when userId changes (covers first load after refresh)
   const userId = useAuthStore((s) => s.user?.id);
 
   useEffect(() => {
-    if (!userId) return; // wait until user is confirmed
+    if (!userId) return;
 
-    // Initial data fetch — all in parallel
-    void Promise.all([
-      fetchMenuData(),
-      fetchCustomers(),
-      fetchTodayOrders(),
-      fetchInventory(),
-      fetchActiveShift(),
-      fetchShiftHistory(),
-    ]);
+    let unsubscribe: (() => void) | null = null;
 
-    // Subscribe to realtime orders (kanban)
-    const unsubscribe = subscribeToOrders();
-    return () => { unsubscribe(); };
+    const init = async () => {
+      // Force Supabase client to restore its own session from localStorage
+      // before making any authenticated queries.
+      // Without this, RLS-protected tables (like products) return empty on refresh.
+      await supabase.auth.getSession();
+
+      // Now it's safe to fetch all data in parallel
+      await Promise.all([
+        fetchMenuData(),
+        fetchCustomers(),
+        fetchTodayOrders(),
+        fetchInventory(),
+        fetchActiveShift(),
+        fetchShiftHistory(),
+      ]);
+
+      // Subscribe to realtime orders (kanban)
+      unsubscribe = subscribeToOrders();
+    };
+
+    void init();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]); // re-trigger when user is available after refresh
+  }, [userId]);
 
-  return null; // renders nothing
+  return null;
 }
