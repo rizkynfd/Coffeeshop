@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/Button';
-import { Coffee, Eye, EyeOff, AlertCircle, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -37,8 +37,13 @@ export default function LoginPage() {
         <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full bg-amber-accent/10 blur-3xl" />
 
         <div className="relative z-10 max-w-md text-center">
-          <div className="w-20 h-20 mx-auto mb-8 rounded-2xl bg-amber-accent flex items-center justify-center shadow-xl">
-            <Coffee className="w-10 h-10 text-white" />
+          {/* Logo */}
+          <div className="w-28 h-28 mx-auto mb-6">
+            <img
+              src="/Logo Kopishop.png"
+              alt="KopiShop"
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="font-display text-4xl font-bold text-cream mb-4">
             KopiShop
@@ -71,9 +76,11 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-11 h-11 rounded-xl bg-amber-accent flex items-center justify-center">
-              <Coffee className="w-6 h-6 text-white" />
-            </div>
+            <img
+              src="/Logo Kopishop.png"
+              alt="KopiShop"
+              className="w-11 h-11 object-contain"
+            />
             <div>
               <h1 className="font-display text-xl font-bold text-espresso-900">KopiShop</h1>
               <p className="text-xs text-espresso-400">Coffee Shop POS</p>

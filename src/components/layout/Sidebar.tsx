@@ -15,7 +15,6 @@ import {
   Clock,
   Settings,
   LogOut,
-  Coffee,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -115,10 +114,16 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 h-16 border-b border-espresso-800/50 shrink-0">
-        <div className="w-9 h-9 rounded-xl bg-amber-accent flex items-center justify-center shrink-0">
-          <Coffee className="w-5 h-5 text-white" />
-        </div>
+      <div className="flex items-center gap-3 px-4 h-16 border-b border-espresso-800/50 shrink-0">
+        {/* Logo image — always visible, size changes on collapse */}
+        <img
+          src="/Logo Kopishop.png"
+          alt="KopiShop"
+          className={cn(
+            'object-contain shrink-0 transition-all duration-300',
+            collapsed ? 'w-9 h-9' : 'w-10 h-10'
+          )}
+        />
         {!collapsed && (
           <div className="animate-fade-in">
             <h1 className="font-display text-lg font-semibold text-cream leading-tight">
