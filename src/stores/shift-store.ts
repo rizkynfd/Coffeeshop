@@ -16,21 +16,25 @@ export interface Shift {
   revenue: number;
 }
 
-// ── Mapper ──────────────────────────────────────────────────
+// ── Mapper — maps actual DB columns → app Shift shape ────────
+// DB columns: id, user_id, user_name, start_time, end_time,
+//             opening_cash, closing_cash, total_sales,
+//             total_transactions, is_active
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapDbShift(row: any): Shift {
   return {
     id: row.id,
-    cashierName: row.cashier_name,
+    cashierName: row.user_name ?? '',
     startTime: new Date(row.start_time),
     endTime: row.end_time ? new Date(row.end_time) : undefined,
-    startingCash: row.starting_cash,
-    expectedCash: row.expected_cash,
-    actualCash: row.actual_cash ?? undefined,
-    status: row.status,
-    transactions: row.transactions,
-    revenue: row.revenue,
+    startingCash: row.opening_cash ?? 0,
+    // expected cash = opening + sales so far
+    expectedCash: (row.opening_cash ?? 0) + (row.total_sales ?? 0),
+    actualCash: row.closing_cash ?? undefined,
+    status: row.is_active ? 'active' : 'closed',
+    transactions: row.total_transactions ?? 0,
+    revenue: row.total_sales ?? 0,
   };
 }
 
@@ -45,7 +49,7 @@ interface ShiftState {
   fetchShiftHistory: () => Promise<void>;
   openShift: (cashierName: string, startingCash: number) => Promise<void>;
   closeShift: (actualCash: number) => Promise<void>;
-  updateShiftStats: (revenue: number, transactions: number) => void; // stays sync for POS speed
+  updateShiftStats: (revenue: number, transactions: number) => void;
 }
 
 export const useShiftStore = create<ShiftState>()((set, get) => ({
@@ -58,13 +62,14 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
     if (!auth.user) return;
     set({ isLoading: true });
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('shifts')
         .select('*')
-        .eq('status', 'active')
+        .eq('is_active', true)
         .order('start_time', { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (error) throw error;
       set({ activeShift: data ? mapDbShift(data) : null });
     } catch (err) {
       console.error('fetchActiveShift error:', err);
@@ -75,12 +80,13 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
 
   fetchShiftHistory: async () => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('shifts')
         .select('*')
-        .eq('status', 'closed')
+        .eq('is_active', false)
         .order('start_time', { ascending: false })
         .limit(20);
+      if (error) throw error;
       set({ history: (data ?? []).map(mapDbShift) });
     } catch (err) {
       console.error('fetchShiftHistory error:', err);
@@ -91,6 +97,23 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
     const auth = useAuthStore.getState();
     const id = generateId();
     const now = new Date();
+
+    const { error } = await supabase.from('shifts').insert({
+      id,
+      user_id: auth.user?.id ?? null,
+      user_name: cashierName,
+      start_time: now.toISOString(),
+      opening_cash: startingCash,
+      total_sales: 0,
+      total_transactions: 0,
+      is_active: true,
+    });
+
+    if (error) {
+      console.error('openShift error:', error);
+      return;
+    }
+
     const newShift: Shift = {
       id,
       cashierName,
@@ -101,18 +124,6 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
       transactions: 0,
       revenue: 0,
     };
-    const { error } = await supabase.from('shifts').insert({
-      id,
-      user_id: auth.user?.id ?? 'unknown',
-      cashier_name: cashierName,
-      start_time: now.toISOString(),
-      starting_cash: startingCash,
-      expected_cash: startingCash,
-      status: 'active',
-      transactions: 0,
-      revenue: 0,
-    });
-    if (error) { console.error('openShift error:', error); return; }
     set({ activeShift: newShift });
   },
 
@@ -120,15 +131,21 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
     const { activeShift } = get();
     if (!activeShift) return;
     const now = new Date();
+
     const { error } = await supabase
       .from('shifts')
       .update({
         end_time: now.toISOString(),
-        actual_cash: actualCash,
-        status: 'closed',
+        closing_cash: actualCash,
+        is_active: false,
       })
       .eq('id', activeShift.id);
-    if (error) { console.error('closeShift error:', error); return; }
+
+    if (error) {
+      console.error('closeShift error:', error);
+      return;
+    }
+
     const closedShift: Shift = {
       ...activeShift,
       endTime: now,
@@ -141,7 +158,7 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
     }));
   },
 
-  // Stays synchronous for in-session speed — Supabase updated at shift close
+  // Stays synchronous for in-session speed — Supabase updated async
   updateShiftStats: (revenue, transactions) => {
     set((state) => {
       if (!state.activeShift) return state;
@@ -158,9 +175,8 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
       supabase
         .from('shifts')
         .update({
-          revenue: updated.revenue,
-          transactions: updated.transactions,
-          expected_cash: updated.expectedCash,
+          total_sales: updated.revenue,
+          total_transactions: updated.transactions,
         })
         .eq('id', updated.id)
         .then(({ error }) => {
