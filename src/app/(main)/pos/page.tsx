@@ -121,7 +121,7 @@ export default function POSPage() {
         <div className="px-6 pt-5 pb-4 space-y-4 shrink-0">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-espresso-900">Kasir</h1>
+              <h1 className="text-2xl font-bold text-espresso-900">Kasir</h1>
               <p className="text-sm text-espresso-400">
                 Pilih produk untuk membuat pesanan
               </p>

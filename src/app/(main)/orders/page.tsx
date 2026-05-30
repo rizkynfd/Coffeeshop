@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useOrderStore } from '@/stores/order-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { Badge } from '@/components/ui/Badge';
@@ -202,10 +202,32 @@ function OrderCard({
 }
 
 export default function OrdersPage() {
-  const { orders, updateOrderStatus, voidOrder, getActiveOrders } =
+  const { orders, updateOrderStatus, voidOrder, getActiveOrders, fetchTodayOrders } =
     useOrderStore();
   const { hasRole } = useAuthStore();
   const canVoid = hasRole(['supervisor', 'owner']);
+
+
+  // Auto-refresh every 30 seconds
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const doRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchTodayOrders();
+    setLastRefresh(new Date());
+    setTimeout(() => setIsRefreshing(false), 600);
+  };
+
+  useEffect(() => {
+    timerRef.current = setInterval(doRefresh, 30_000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const secondsAgo = Math.floor((Date.now() - lastRefresh.getTime()) / 1000);
+  const timeLabel = secondsAgo < 5 ? 'Baru saja' : `${secondsAgo}s lalu`;
 
   const activeOrders = getActiveOrders();
   const totalActive = activeOrders.length;
@@ -223,9 +245,24 @@ export default function OrdersPage() {
               {totalActive} pesanan sedang berlangsung
             </p>
           </div>
-          <button className="p-2.5 rounded-xl border border-espresso-200 text-espresso-500 hover:bg-espresso-50 transition-colors cursor-pointer">
-            <RefreshCw className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Live indicator */}
+            <div className="hidden sm:flex items-center gap-2 text-xs text-espresso-400">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-accent opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-accent"></span>
+              </span>
+              <span>{timeLabel}</span>
+            </div>
+            <button
+              onClick={doRefresh}
+              disabled={isRefreshing}
+              className="p-2.5 rounded-xl border border-espresso-200 text-espresso-500 hover:bg-espresso-50 transition-colors cursor-pointer disabled:opacity-50"
+              title="Refresh pesanan"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
       </div>
 

@@ -122,7 +122,7 @@ export function Sidebar() {
         {!collapsed && (
           <div className="animate-fade-in">
             <h1 className="font-display text-lg font-semibold text-cream leading-tight">
-              KopiKasir
+              KopiShop
             </h1>
             <p className="text-[10px] text-espresso-500 uppercase tracking-wider">
               Coffee Shop POS

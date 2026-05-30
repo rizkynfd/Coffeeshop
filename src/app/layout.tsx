@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KopiKasir — Sistem Kasir Coffee Shop",
+  title: "KopiShop — Sistem Kasir Coffee Shop",
   description:
     "Sistem kasir modern untuk coffee shop. Input pesanan cepat, manajemen menu, laporan penjualan, dan loyalty pelanggan.",
   keywords: ["kasir", "coffee shop", "POS", "point of sale"],

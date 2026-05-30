@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatTime, formatDate, getSizeLabel } from '@/lib/utils';
-import { Printer, Check } from 'lucide-react';
+import { useSettingsStore } from '@/stores/settings-store';
+import { Printer, Check, CheckCircle2 } from 'lucide-react';
 import type { Order } from '@/types';
 
 interface ReceiptPreviewProps {
@@ -13,14 +15,23 @@ interface ReceiptPreviewProps {
 }
 
 export function ReceiptPreview({ order, isOpen, onClose }: ReceiptPreviewProps) {
+  const { settings } = useSettingsStore();
+  const [hasPrinted, setHasPrinted] = useState(false);
+
   if (!order) return null;
 
   const handlePrint = () => {
     window.print();
+    setHasPrinted(true);
+  };
+
+  const handleClose = () => {
+    setHasPrinted(false);
+    onClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="sm" showCloseButton={false}>
+    <Modal isOpen={isOpen} onClose={handleClose} size="sm" showCloseButton={false}>
       <div className="p-6">
         {/* Success Icon */}
         <div className="flex justify-center mb-6">
@@ -35,13 +46,21 @@ export function ReceiptPreview({ order, isOpen, onClose }: ReceiptPreviewProps) 
           Order #{order.orderNumber}
         </p>
 
+        {/* Printed Badge */}
+        {hasPrinted && (
+          <div className="flex items-center justify-center gap-2 mb-4 px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100 animate-fade-in">
+            <CheckCircle2 className="w-4 h-4 text-emerald-accent" />
+            <span className="text-sm text-emerald-accent font-medium">Struk sudah dicetak</span>
+          </div>
+        )}
+
         {/* Receipt */}
         <div className="bg-espresso-50 rounded-xl p-5 receipt-text border border-espresso-100">
-          {/* Header */}
+          {/* Header — from Settings */}
           <div className="text-center border-b border-dashed border-espresso-300 pb-3 mb-3">
-            <p className="font-bold text-sm">☕ KOPI KASIR</p>
-            <p className="text-espresso-500">Jl. Kopi No. 123, Surabaya</p>
-            <p className="text-espresso-500">Telp: (031) 1234-5678</p>
+            <p className="font-bold text-sm">☕ {settings.storeName.toUpperCase()}</p>
+            <p className="text-espresso-500">{settings.storeAddress}</p>
+            <p className="text-espresso-500">Telp: {settings.storePhone}</p>
           </div>
 
           {/* Order Info */}
@@ -149,21 +168,36 @@ export function ReceiptPreview({ order, isOpen, onClose }: ReceiptPreviewProps) 
             )}
           </div>
 
-          {/* Footer */}
+          {/* Footer — from Settings */}
           <div className="text-center mt-4 pt-3 border-t border-dashed border-espresso-300">
-            <p className="text-espresso-400">Terima kasih!</p>
-            <p className="text-espresso-400">Selamat menikmati ☕</p>
+            <p className="text-espresso-400">{settings.receiptFooter1}</p>
+            <p className="text-espresso-400">{settings.receiptFooter2}</p>
           </div>
         </div>
       </div>
 
       {/* Actions */}
       <div className="px-6 py-4 border-t border-espresso-100 flex gap-3 no-print">
-        <Button variant="secondary" size="lg" fullWidth onClick={handlePrint}>
-          <Printer className="w-4 h-4 mr-2" />
-          Cetak Struk
+        <Button
+          variant={hasPrinted ? 'secondary' : 'secondary'}
+          size="lg"
+          fullWidth
+          onClick={handlePrint}
+          className={hasPrinted ? 'border-emerald-200 text-emerald-600' : ''}
+        >
+          {hasPrinted ? (
+            <>
+              <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-accent" />
+              Cetak Lagi
+            </>
+          ) : (
+            <>
+              <Printer className="w-4 h-4 mr-2" />
+              Cetak Struk
+            </>
+          )}
         </Button>
-        <Button size="lg" fullWidth onClick={onClose}>
+        <Button size="lg" fullWidth onClick={handleClose}>
           Selesai
         </Button>
       </div>

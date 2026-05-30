@@ -41,7 +41,7 @@ export default function LoginPage() {
             <Coffee className="w-10 h-10 text-white" />
           </div>
           <h1 className="font-display text-4xl font-bold text-cream mb-4">
-            KopiKasir
+            KopiShop
           </h1>
           <p className="text-espresso-400 text-lg leading-relaxed mb-8">
             Sistem kasir modern untuk coffee shop Anda.{' '}
@@ -75,7 +75,7 @@ export default function LoginPage() {
               <Coffee className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="font-display text-xl font-bold text-espresso-900">KopiKasir</h1>
+              <h1 className="font-display text-xl font-bold text-espresso-900">KopiShop</h1>
               <p className="text-xs text-espresso-400">Coffee Shop POS</p>
             </div>
           </div>
@@ -99,7 +99,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 rounded-xl border border-espresso-200 bg-white text-espresso-900 placeholder:text-espresso-400 focus:outline-none focus:ring-2 focus:ring-amber-accent/30 focus:border-amber-accent transition-all"
-                  placeholder="nama@kopikasir.com"
+                  placeholder="nama@kopishop.com"
                   required
                   autoFocus
                   autoComplete="email"

@@ -74,11 +74,12 @@ function ProductCard({
           </div>
         )}
 
-        {/* Out of stock overlay */}
+        {/* Out of stock overlay — more prominent */}
         {!product.isAvailable && (
-          <div className="absolute inset-0 bg-espresso-950/50 flex items-center justify-center rounded-lg">
-            <span className="px-3 py-1.5 bg-rose-accent text-white text-xs font-bold rounded-full">
-              Habis
+          <div className="absolute inset-0 bg-espresso-950/60 flex flex-col items-center justify-center rounded-lg gap-1.5">
+            <span className="text-2xl">🚫</span>
+            <span className="px-3 py-1 bg-rose-accent text-white text-xs font-bold rounded-full tracking-wide uppercase">
+              Stok Habis
             </span>
           </div>
         )}
@@ -93,21 +94,21 @@ function ProductCard({
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-semibold text-espresso-800 truncate">
+        <h3 className="text-base font-semibold text-espresso-800 truncate leading-snug">
           {product.name}
         </h3>
-        <p className="text-[11px] text-espresso-400 mt-0.5 line-clamp-1">
+        <p className="text-xs text-espresso-400 mt-0.5 line-clamp-1">
           {product.description}
         </p>
       </div>
 
       {/* Price */}
       <div className="mt-2 flex items-baseline gap-1">
-        <span className="text-sm font-bold font-mono text-espresso-900">
+        <span className="text-base font-bold font-mono text-espresso-900">
           {formatCurrency(minPrice)}
         </span>
         {hasMultipleSizes && (
-          <span className="text-[10px] text-espresso-400">
+          <span className="text-xs text-espresso-400">
             ({product.variants.map((v) => getSizeLabel(v.size)).join('/')})
           </span>
         )}

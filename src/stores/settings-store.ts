@@ -19,10 +19,10 @@ interface SettingsState {
 
 export const useSettingsStore = create<SettingsState>((set) => ({
   settings: {
-    storeName: 'Kopi Kasir - Cabang Utama',
+    storeName: 'KopiShop - Cabang Utama',
     storeAddress: 'Jl. Kopi No. 123, Surabaya, Jawa Timur 60111',
     storePhone: '(031) 1234-5678',
-    storeEmail: 'hello@kopikasir.com',
+    storeEmail: 'hello@kopishop.com',
     taxRate: 11,
     serviceCharge: 0,
     receiptFooter1: 'Terima kasih!',
